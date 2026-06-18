@@ -47,5 +47,5 @@ Este projeto é pessoal e educacional. Feito com 💜 para aprender na prática.
 ---
  
 <div align="center">
-  <sub>Construído por <a href="https://github.com/seu-usuario">você</a> • com muito café e vontade de aprender ☕</sub>
+  <sub>Construído por <a href="https://github.com/JPLabussiereF">JPLabussiereF</a> • com muito café e vontade de aprender ☕</sub>
 </div>
