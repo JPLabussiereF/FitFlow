@@ -1,0 +1,104 @@
+### === JAVA / SPRING BOOT (fitflow-backend) === ###
+
+# Maven
+fitflow-backend/target/
+fitflow-backend/.mvn/wrapper/maven-wrapper.jar
+!fitflow-backend/.mvn/wrapper/maven-wrapper.properties
+
+# Gradle (caso troque de build tool no futuro)
+fitflow-backend/.gradle/
+fitflow-backend/build/
+
+# Compiled class files
+*.class
+
+# Spring Boot
+fitflow-backend/HELP.md
+
+# Application properties com dados sensíveis (mantenha um .example versionado)
+application-local.yml
+application-local.properties
+application-secrets.yml
+
+### === ANGULAR / NODE (fitflow-frontend) === ###
+
+# Dependências
+fitflow-frontend/node_modules/
+fitflow-frontend/.angular/
+fitflow-frontend/dist/
+fitflow-frontend/.angular/cache/
+
+# Logs do npm/yarn
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Variáveis de ambiente do front
+fitflow-frontend/.env
+fitflow-frontend/.env.local
+
+# Build de produção
+fitflow-frontend/.firebase/
+fitflow-frontend/.vercel/
+fitflow-frontend/.netlify/
+
+### === VARIÁVEIS DE AMBIENTE GERAIS === ###
+
+.env
+.env.local
+.env.*.local
+*.env
+
+### === DOCKER === ###
+
+# Volumes locais de dados (caso configure bind mount)
+docker-data/
+postgres-data/
+
+### === VS CODE === ###
+
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+### === SISTEMA OPERACIONAL === ###
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+### === LOGS E TEMPORÁRIOS === ###
+
+*.log
+logs/
+*.tmp
+*.bak
+
+### === IDEs ALTERNATIVAS === ###
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+
+# Eclipse / STS
+.classpath
+.project
+.settings/
+bin/
