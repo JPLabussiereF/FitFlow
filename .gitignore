@@ -6,7 +6,6 @@ CLAUDE.md
 
 # Maven
 fitflow-backend/target/
-fitflow-backend/.mvn/wrapper/maven-wrapper.jar
 !fitflow-backend/.mvn/wrapper/maven-wrapper.properties
 
 # Gradle (caso troque de build tool no futuro)

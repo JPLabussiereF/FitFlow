@@ -1,0 +1,18 @@
+# Garante LF (Unix) para arquivos que rodam em Linux/CI
+# Sem isso, o Windows converte para CRLF e o CI quebra com "bad interpreter"
+
+fitflow-backend/mvnw           text eol=lf
+fitflow-backend/mvnw.cmd       text eol=crlf
+*.sh                           text eol=lf
+*.yml                          text eol=lf
+*.yaml                         text eol=lf
+*.properties                   text eol=lf
+*.sql                          text eol=lf
+*.json                         text eol=lf
+*.ts                           text eol=lf
+*.html                         text eol=lf
+
+# Binários — sem conversão de linha
+*.jar                          binary
+*.png                          binary
+*.jpg                          binary
