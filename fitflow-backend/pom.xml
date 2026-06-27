@@ -1,0 +1,210 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!--
+        PARENT: herda configurações do Spring Boot.
+        Isso nos dá versões pré-definidas e compatíveis de todas as libs —
+        não precisamos especificar versão em cada dependência abaixo (exceto libs externas).
+    -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.5</version>
+        <relativePath/>
+    </parent>
+
+    <!-- Identidade do nosso projeto -->
+    <groupId>com.fitflow</groupId>
+    <artifactId>fitflow-backend</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <name>fitflow-backend</name>
+    <description>FitFlow - Personal workout tracker API</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <!-- Versões de libs que não vêm no parent do Spring Boot -->
+        <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <jjwt.version>0.12.5</jjwt.version>
+    </properties>
+
+    <dependencies>
+
+        <!-- ═══════════════════════════════════════════════════
+             SPRING BOOT STARTERS
+             "Starters" são pacotes que agrupam várias libs
+             relacionadas. Ex: spring-boot-starter-web já inclui
+             Tomcat embutido, Jackson (JSON), MVC, etc.
+        ═══════════════════════════════════════════════════ -->
+
+        <!-- Habilita criação de endpoints REST (@RestController, @GetMapping...) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- Spring Security: autenticação e autorização.
+             Após adicionar esta dep, a API já fica protegida por padrão
+             (todas as rotas exigem login). Vamos configurar quais são públicas. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- Spring Data JPA: abstração para acessar o banco via objetos Java.
+             Com JPA, escrevemos entidades (@Entity) e repositórios (interfaces)
+             em vez de SQL manual. O Hibernate é a implementação por baixo. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+
+        <!-- Bean Validation: permite usar anotações como @NotBlank, @Email, @Min
+             nos DTOs para validar dados que chegam pela API automaticamente. -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════════════
+             BANCO DE DADOS
+        ═══════════════════════════════════════════════════ -->
+
+        <!-- Driver JDBC do PostgreSQL. "runtime" = só é necessário em execução,
+             não precisamos importar classes dele no código. -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Flyway Core: gerencia versões do banco de dados via arquivos SQL.
+             Ex: V1__create_users.sql, V2__create_workouts.sql
+             Ao iniciar, o Flyway roda automaticamente os scripts pendentes. -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+
+        <!-- Suporte específico do Flyway para PostgreSQL (necessário no Flyway 10+) -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════════════
+             PRODUTIVIDADE
+        ═══════════════════════════════════════════════════ -->
+
+        <!-- Lombok: elimina código repetitivo com anotações.
+             @Data gera getters/setters/equals/hashCode/toString.
+             @Builder gera o padrão builder. @Slf4j injeta um logger.
+             "optional" = não é propagado para quem depender do nosso projeto. -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- MapStruct: gera código de conversão Entity <-> DTO em tempo de compilação.
+             Ex: UserMapper converte User (entidade) para UserResponseDTO automaticamente.
+             Mais seguro e rápido do que conversão manual ou reflection. -->
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${mapstruct.version}</version>
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════════════
+             JWT (JSON Web Token)
+             Dividido em 3 artefatos: api (interfaces), impl (implementação),
+             jackson (serialização JSON). impl e jackson são "runtime" pois
+             não precisamos das classes deles diretamente no código.
+        ═══════════════════════════════════════════════════ -->
+
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════════════
+             TESTES
+             "test" = estas libs só existem durante os testes,
+             não entram no jar final da aplicação.
+        ═══════════════════════════════════════════════════ -->
+
+        <!-- JUnit 5, Mockito, AssertJ e MockMvc para testes da API -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Utilitários para testar endpoints protegidos pelo Spring Security -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <!-- Plugin do Spring Boot: empacota a aplicação como um "fat jar"
+                 (JAR com todas as dependências incluídas), executável com:
+                 java -jar fitflow-backend.jar -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <!-- Exclui Lombok do jar final — ele só é necessário em tempo de compilação -->
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+            <!-- Configura os processadores de anotação do Lombok e MapStruct.
+                 Eles rodam durante a compilação para GERAR código Java automaticamente.
+                 A ordem importa: Lombok deve vir antes do MapStruct. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                        <path>
+                            <groupId>org.mapstruct</groupId>
+                            <artifactId>mapstruct-processor</artifactId>
+                            <version>${mapstruct.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+</project>

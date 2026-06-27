@@ -1,0 +1,71 @@
+# ============================================================
+# CONFIGURAÇÕES DA APLICAÇÃO FITFLOW
+# O Spring Boot lê este arquivo automaticamente na inicialização.
+# Formato YAML: indentação com 2 espaços define hierarquia.
+# ============================================================
+
+spring:
+  application:
+    # Nome da aplicação — aparece em logs e monitoramento
+    name: fitflow-backend
+
+  # --- BANCO DE DADOS ---
+  datasource:
+    # URL de conexão com o PostgreSQL.
+    # Formato: jdbc:postgresql://<host>:<porta>/<nome-do-banco>
+    # "localhost:5432" é onde o Docker vai expor o banco (veja docker-compose.yml)
+    url: jdbc:postgresql://localhost:5432/fitflow
+
+    # Usuário e senha definidos no docker-compose.yml
+    username: fitflow
+    password: fitflow
+
+    # Driver JDBC do PostgreSQL — diz ao Spring como "falar" com o banco
+    driver-class-name: org.postgresql.Driver
+
+  # --- JPA / HIBERNATE ---
+  jpa:
+    hibernate:
+      # "validate": o Hibernate NÃO cria nem altera tabelas.
+      # Ele só verifica se as entidades (@Entity) batem com o banco.
+      # Quem cria as tabelas é o Flyway (veja abaixo).
+      # Outras opções: create, create-drop, update — evite em produção.
+      ddl-auto: validate
+
+    # false = não imprime cada SQL executado no console (muda para true se quiser depurar)
+    show-sql: false
+
+    properties:
+      hibernate:
+        # Formata o SQL nos logs quando show-sql: true (mais legível)
+        format_sql: true
+        # Dialeto: diz ao Hibernate que estamos usando PostgreSQL especificamente
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  # --- FLYWAY (MIGRATIONS) ---
+  flyway:
+    # Habilita o Flyway — ele roda automaticamente ao iniciar a aplicação
+    enabled: true
+    # Onde ficam os arquivos de migration SQL.
+    # "classpath:" aponta para src/main/resources/
+    # Os arquivos devem seguir o padrão: V1__descricao.sql, V2__descricao.sql ...
+    locations: classpath:db/migration
+
+# --- SERVIDOR ---
+server:
+  # Porta onde a API vai rodar. Acesse: http://localhost:8080
+  port: 8080
+
+# --- CONFIGURAÇÕES CUSTOMIZADAS DO FITFLOW ---
+# Estas não são do Spring — são propriedades nossas, lidas com @Value ou @ConfigurationProperties
+fitflow:
+  jwt:
+    # Chave secreta usada para assinar e validar os tokens JWT.
+    # ${JWT_SECRET:...} significa: use a variável de ambiente JWT_SECRET se existir,
+    # senão use o valor padrão após os dois pontos (apenas para desenvolvimento local).
+    # Em produção, SEMPRE defina JWT_SECRET como variável de ambiente real.
+    secret: ${JWT_SECRET:fitflow-dev-secret-key-256-bits-change-in-production-00000}
+
+    # Tempo de expiração do token em milissegundos.
+    # 86400000 ms = 24 horas. Após isso, o usuário precisa fazer login novamente.
+    expiration-ms: 86400000  # 24h
