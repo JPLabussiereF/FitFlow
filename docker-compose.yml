@@ -69,6 +69,28 @@ services:
     # "unless-stopped" = reinicia automaticamente se travar, exceto se você parar manualmente.
     restart: unless-stopped
 
+  # ── APLICAÇÃO ───────────────────────────────────────────────
+  app:
+    # Constrói a imagem a partir do Dockerfile em fitflow-backend/
+    build: ./fitflow-backend
+    container_name: fitflow-app
+    ports:
+      - "8080:8080"
+
+    # Dentro do Docker, "localhost" seria o próprio container.
+    # Usamos o nome do serviço "postgres" como host, que o Docker resolve automaticamente.
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/fitflow
+      SPRING_DATASOURCE_USERNAME: fitflow
+      SPRING_DATASOURCE_PASSWORD: fitflow
+
+    # Só inicia após o postgres estar saudável (healthcheck verde)
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    restart: unless-stopped
+
 # ── VOLUMES ─────────────────────────────────────────────────
 # Aqui declaramos os volumes nomeados usados acima.
 # O Docker gerencia onde esses dados ficam no disco da sua máquina.
