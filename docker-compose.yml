@@ -1,0 +1,79 @@
+# ============================================================
+# DOCKER COMPOSE — FITFLOW
+#
+# O que é Docker Compose?
+# É uma ferramenta para definir e rodar múltiplos containers
+# Docker com um único arquivo de configuração.
+#
+# Por que usar aqui?
+# Em vez de instalar o PostgreSQL na sua máquina, rodamos ele
+# dentro de um container isolado. Isso garante que qualquer
+# pessoa que clonar o projeto tenha exatamente o mesmo banco.
+#
+# Comandos principais:
+#   docker compose up -d     → sobe os containers em background
+#   docker compose down      → para e remove os containers
+#   docker compose logs -f   → acompanha os logs em tempo real
+#   docker compose ps        → lista containers e status
+# ============================================================
+
+# Versão da sintaxe do Compose (3.8 é estável e amplamente suportada)
+version: "3.8"
+
+# "services" define cada container que queremos rodar.
+# Cada chave dentro de services é o nome do serviço (pode ser qualquer nome).
+services:
+
+  # ── BANCO DE DADOS ──────────────────────────────────────────
+  postgres:
+    # "image" é a imagem Docker que vamos usar como base.
+    # Formato: nome:versão  — sem versão usaria "latest" (evitar em produção)
+    # O Docker vai baixar esta imagem do Docker Hub se não existir localmente.
+    image: postgres:16
+
+    # Nome do container que aparece no "docker ps" e nos logs.
+    # Sem isso o Docker gera um nome aleatório (ex: fitflow-postgres-1).
+    container_name: fitflow-postgres
+
+    # "environment" define variáveis de ambiente dentro do container.
+    # A imagem oficial do PostgreSQL lê estas variáveis para se configurar.
+    environment:
+      POSTGRES_DB: fitflow         # Nome do banco que será criado automaticamente
+      POSTGRES_USER: fitflow       # Usuário administrador do banco
+      POSTGRES_PASSWORD: fitflow   # Senha do usuário (apenas para dev local!)
+
+    # "ports" mapeia portas: "porta-da-sua-máquina:porta-do-container"
+    # O PostgreSQL roda na porta 5432 dentro do container.
+    # Mapeamos para 5432 na sua máquina — por isso o application.yml usa localhost:5432.
+    # Se a porta 5432 já estiver em uso, troque para "5433:5432" e ajuste o application.yml.
+    ports:
+      - "5432:5432"
+
+    # "volumes" garante que os dados do banco sobrevivam ao "docker compose down".
+    # Sem volume, parar o container apagaria todos os dados!
+    # Formato: "nome-do-volume:/caminho/dentro/do/container"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    # "healthcheck" é uma verificação periódica se o serviço está saudável.
+    # O Docker usa isso para saber quando o banco realmente está pronto para aceitar conexões
+    # (não apenas quando o container iniciou — há alguns segundos de diferença).
+    # Útil quando outros serviços dependem do banco estar "up".
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fitflow -d fitflow"]
+      interval: 10s   # Verifica a cada 10 segundos
+      timeout: 5s     # Aguarda até 5s pela resposta
+      retries: 5      # Tenta 5 vezes antes de declarar "unhealthy"
+
+    # "restart" define o comportamento ao reiniciar.
+    # "unless-stopped" = reinicia automaticamente se travar, exceto se você parar manualmente.
+    restart: unless-stopped
+
+# ── VOLUMES ─────────────────────────────────────────────────
+# Aqui declaramos os volumes nomeados usados acima.
+# O Docker gerencia onde esses dados ficam no disco da sua máquina.
+# Para ver onde: docker volume inspect fitflow_postgres_data
+volumes:
+  postgres_data:
+    # "driver: local" é o padrão — armazena os dados localmente na máquina host.
+    driver: local

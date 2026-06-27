@@ -1,0 +1,119 @@
+# ============================================================
+# CI PIPELINE — FitFlow
+#
+# Este workflow roda automaticamente no GitHub Actions sempre
+# que houver push ou pull request para a branch "development".
+#
+# O que ele faz:
+#   1. Sobe um banco PostgreSQL temporário para os testes
+#   2. Roda os testes do Spring Boot (Maven)
+#   3. Roda os testes do Angular (quando o front existir)
+# ============================================================
+
+name: CI
+
+# "on" define os gatilhos que disparam o pipeline
+on:
+  push:
+    branches:
+      - development       # Roda ao fazer push direto
+  pull_request:
+    branches:
+      - development       # Roda ao abrir ou atualizar um PR
+
+# "jobs" define os trabalhos paralelos (ou sequenciais) do pipeline
+jobs:
+
+  # ── JOB 1: TESTES DO BACK-END ──────────────────────────────
+  backend-tests:
+    name: Backend — Spring Boot Tests
+    # "runs-on" define o sistema operacional do runner do GitHub
+    runs-on: ubuntu-latest
+
+    # "services" sobe containers Docker auxiliares para este job.
+    # O PostgreSQL ficará disponível em localhost:5432 para os testes.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: fitflow_test
+          POSTGRES_USER: fitflow
+          POSTGRES_PASSWORD: fitflow
+        ports:
+          - 5432:5432
+        # O runner espera o banco estar saudável antes de continuar
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # 1. Faz checkout do código da branch que disparou o pipeline
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Configura o Java 17 no runner
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"    # Distribuição OpenJDK da Adoptium
+          cache: maven               # Faz cache das dependências Maven para acelerar builds
+
+      # 3. Roda os testes com Maven.
+      # As variáveis de ambiente sobrescrevem o application.yml durante o CI,
+      # apontando para o banco PostgreSQL do serviço acima.
+      - name: Run backend tests
+        working-directory: fitflow-backend
+        run: ./mvnw verify --no-transfer-progress
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/fitflow_test
+          SPRING_DATASOURCE_USERNAME: fitflow
+          SPRING_DATASOURCE_PASSWORD: fitflow
+
+  # ── JOB 2: TESTES DO FRONT-END ─────────────────────────────
+  frontend-tests:
+    name: Frontend — Angular Tests
+    runs-on: ubuntu-latest
+
+    # Este job só roda se o diretório do front-end existir no repositório.
+    # Enquanto o Angular não for criado, o job é ignorado graciosamente.
+    # Quando criar o front, remova esta condição.
+    #
+    # Técnica: verificamos se o package.json existe antes de continuar.
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Verifica se o projeto Angular já existe
+      - name: Check if frontend exists
+        id: check_frontend
+        run: |
+          if [ -f "fitflow-frontend/package.json" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "⚠️  fitflow-frontend não encontrado — pulando testes do Angular."
+          fi
+
+      # Só executa os próximos steps se o front existir
+      - name: Set up Node.js
+        if: steps.check_frontend.outputs.exists == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: fitflow-frontend/package-lock.json
+
+      - name: Install Angular dependencies
+        if: steps.check_frontend.outputs.exists == 'true'
+        working-directory: fitflow-frontend
+        run: npm ci   # "ci" é mais rápido e determinístico que "npm install" em pipelines
+
+      - name: Run Angular tests (headless)
+        if: steps.check_frontend.outputs.exists == 'true'
+        working-directory: fitflow-frontend
+        # "--watch=false" roda uma vez e sai (não fica em modo watch)
+        # "--browsers=ChromeHeadless" roda sem interface gráfica
+        run: npx ng test --watch=false --browsers=ChromeHeadless
