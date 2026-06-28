@@ -1,0 +1,272 @@
+openapi: 3.0.3
+
+info:
+  title: FitFlow API
+  version: 1.0.0
+  description: |
+    API REST do FitFlow — gerenciador de treinos pessoais.
+
+    ## Autenticação
+    Rotas protegidas exigem o header `Authorization: Bearer <token>`.
+    O token é obtido nos endpoints `/register` ou `/login`.
+
+servers:
+  - url: http://localhost:8080
+    description: Desenvolvimento local
+
+tags:
+  - name: Auth
+    description: Cadastro e autenticação de usuários
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PATHS
+# ─────────────────────────────────────────────────────────────────────────────
+paths:
+
+  /api/v1/auth/register:
+    post:
+      summary: Cadastro de novo usuário
+      description: |
+        Cria uma nova conta e retorna um JWT válido por 24 horas.
+        O e-mail é normalizado (trim + lowercase) antes de persistir.
+        Senhas são armazenadas como hash BCrypt — nunca em texto puro.
+      operationId: register
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+            examples:
+              valido:
+                summary: Cadastro válido
+                value:
+                  name: Joao Silva
+                  email: joao@email.com
+                  password: minhasenha123
+      responses:
+        '201':
+          description: Usuário criado com sucesso — retorna JWT imediatamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              examples:
+                sucesso:
+                  value:
+                    token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2FvQGVtYWlsLmNvbSJ9.abc123
+                    userId: 1
+                    name: Joao Silva
+                    email: joao@email.com
+        '400':
+          description: Dados inválidos (campo obrigatório ausente, e-mail malformado, senha < 6 chars)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblemDetail'
+              examples:
+                senha_curta:
+                  summary: Senha abaixo do mínimo
+                  value:
+                    type: about:blank
+                    title: Invalid Request
+                    status: 400
+                    detail: Validation failed
+                    instance: /api/v1/auth/register
+                    errors:
+                      - "password: size must be between 6 and 72"
+                email_invalido:
+                  summary: E-mail malformado
+                  value:
+                    type: about:blank
+                    title: Invalid Request
+                    status: 400
+                    detail: Validation failed
+                    instance: /api/v1/auth/register
+                    errors:
+                      - "email: must be a well-formed email address"
+        '409':
+          description: E-mail já cadastrado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              examples:
+                email_duplicado:
+                  value:
+                    type: about:blank
+                    title: Email Already Exists
+                    status: 409
+                    detail: "E-mail já está em uso: joao@email.com"
+                    instance: /api/v1/auth/register
+
+  /api/v1/auth/login:
+    post:
+      summary: Login de usuário existente
+      description: |
+        Autentica um usuário e retorna um JWT válido por 24 horas.
+        A mensagem de erro para credenciais inválidas é sempre genérica
+        ("Credenciais inválidas") para evitar user enumeration attack —
+        não é possível distinguir se o e-mail não existe ou se a senha está errada.
+      operationId: login
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+            examples:
+              valido:
+                summary: Login válido
+                value:
+                  email: joao@email.com
+                  password: minhasenha123
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+              examples:
+                sucesso:
+                  value:
+                    token: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2FvQGVtYWlsLmNvbSJ9.abc123
+                    userId: 1
+                    name: Joao Silva
+                    email: joao@email.com
+        '400':
+          description: Campos obrigatórios ausentes ou e-mail malformado
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ValidationProblemDetail'
+        '401':
+          description: Credenciais inválidas (e-mail inexistente ou senha incorreta)
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              examples:
+                credenciais_invalidas:
+                  value:
+                    type: about:blank
+                    title: Authentication Failed
+                    status: 401
+                    detail: Credenciais inválidas
+                    instance: /api/v1/auth/login
+
+# ─────────────────────────────────────────────────────────────────────────────
+# COMPONENTS
+# ─────────────────────────────────────────────────────────────────────────────
+components:
+
+  # ── Schemas ────────────────────────────────────────────────────────────────
+  schemas:
+
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Joao Silva
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: joao@email.com
+        password:
+          type: string
+          minLength: 6
+          maxLength: 72
+          writeOnly: true
+          description: Será armazenada como hash BCrypt. Máximo 72 bytes (limite do BCrypt).
+          example: minhasenha123
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: joao@email.com
+        password:
+          type: string
+          writeOnly: true
+          example: minhasenha123
+
+    AuthResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: JWT assinado com HS256, válido por 24 horas. Inclua no header Authorization das rotas protegidas.
+          example: eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJqb2FvQGVtYWlsLmNvbSJ9.abc123
+        userId:
+          type: integer
+          format: int64
+          example: 1
+        name:
+          type: string
+          example: Joao Silva
+        email:
+          type: string
+          format: email
+          example: joao@email.com
+
+    ProblemDetail:
+      type: object
+      description: Resposta de erro padronizada (RFC 7807)
+      properties:
+        type:
+          type: string
+          format: uri
+          example: about:blank
+        title:
+          type: string
+          example: Bad Request
+        status:
+          type: integer
+          example: 400
+        detail:
+          type: string
+          example: Descrição legível do erro
+        instance:
+          type: string
+          format: uri-reference
+          example: /api/v1/auth/register
+
+    ValidationProblemDetail:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetail'
+        - type: object
+          properties:
+            errors:
+              type: array
+              description: Lista de campos que falharam na validação
+              items:
+                type: string
+              example:
+                - "password: size must be between 6 and 72"
+                - "email: must be a well-formed email address"
+
+  # ── Security Schemes ───────────────────────────────────────────────────────
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Token JWT obtido via `/register` ou `/login`.
+        Inclua no header: `Authorization: Bearer <token>`
+
+# Aplicado globalmente — todas as rotas não marcadas como públicas exigem este header.
+# Os endpoints de auth (/register e /login) são explicitamente públicos (sem security aqui).
+security:
+  - BearerAuth: []

@@ -161,6 +161,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **Core development**: Implement models, services, CLI commands, endpoints
    - **Integration work**: Database connections, middleware, logging, external services
    - **Polish and validation**: Unit tests, performance optimization, documentation
+   - **Continuous Documentation**: EVERY TIME an endpoint, route, or controller is created or modified, you MUST automatically update or create a `docs/swagger.yaml` file with the correct OpenAPI 3.0 specification (paths, methods, DTO/Entity schemas, and HTTP status codes) so the API can be tested without external tools like Postman.
 
 8. Progress tracking and error handling:
    - Report progress after each completed task
@@ -216,9 +217,39 @@ Check if `.specify/extensions.yml` exists in the project root.
 
 Report final status with summary of completed work.
 
+## Comandos para Validação Manual
+
+**Você DEVE executar esta seção antes do Completion Report.**
+
+1. Leia o arquivo `quickstart.md` da feature (FEATURE_DIR/quickstart.md) se existir.
+2. Para cada item do "Checklist de Validação Manual" do quickstart.md, gere um comando `curl` pronto para copiar e colar.
+3. Se não houver quickstart.md, use os itens do checklist da spec.md ou tasks.md.
+
+**Regras obrigatórias ao gerar os comandos:**
+- Usar nomes e dados **ASCII puro** (sem acentos, sem caracteres especiais) para evitar problemas de encoding no terminal. Ex: "Joao Teste" em vez de "João Teste".
+- Incluir a flag `-s -i` no curl para mostrar o status HTTP junto com o body.
+- Indicar a **resposta esperada** (status HTTP + campo relevante do body) como comentário acima de cada comando.
+- Para itens que dependem de um token (ex: "rota protegida com token válido"), mostrar como capturar o token do passo anterior com `TOKEN=$(...)` e reutilizá-lo.
+- Seguir a ordem do checklist — os comandos devem poder ser executados sequencialmente.
+
+**Formato de saída:**
+
+```
+## Comandos para Validação Manual
+
+# 1. <descrição do item> → <resposta esperada>
+curl -s -i -X POST http://localhost:8080/...
+  -H "Content-Type: application/json" \
+  -d '{...}'
+
+# 2. ...Q
+```
+
 ## Done When
 
 - [ ] All tasks in tasks.md completed and marked `[X]`
 - [ ] Implementation validated against specification, plan, and test coverage
 - [ ] Extension hooks dispatched or skipped according to the rules in Mandatory Post-Execution Hooks above
+- [ ] Comandos para Validação Manual gerados para todos os itens do checklist
+- [ ] Swagger/OpenAPI specification (`docs/swagger.yaml`) is fully updated with any new or modified endpoints
 - [ ] Completion reported to user with summary of completed work
