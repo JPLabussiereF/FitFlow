@@ -2,7 +2,7 @@
 # CI PIPELINE — FitFlow
 #
 # Este workflow roda automaticamente no GitHub Actions sempre
-# que houver push ou pull request para a branch "development".
+# que houver push ou pull request para as branches protegidas.
 #
 # O que ele faz:
 #   1. Sobe um banco PostgreSQL temporário para os testes
@@ -16,10 +16,12 @@ name: CI
 on:
   push:
     branches:
-      - development       # Roda ao fazer push direto
+      - development       # Roda ao fazer push direto em development
+      - main              # Roda ao fazer push direto em main
   pull_request:
     branches:
-      - development       # Roda ao abrir ou atualizar um PR
+      - development       # Roda ao abrir ou atualizar um PR para development
+      - main              # Roda ao abrir ou atualizar um PR para main
 
 # "jobs" define os trabalhos paralelos (ou sequenciais) do pipeline
 jobs:
