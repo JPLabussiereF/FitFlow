@@ -51,21 +51,43 @@ spring:
     # Os arquivos devem seguir o padrão: V1__descricao.sql, V2__descricao.sql ...
     locations: classpath:db/migration
 
+  # --- MVC ---
+  mvc:
+    problemdetails:
+      # Habilita suporte nativo ao RFC 7807 (ProblemDetail) no Spring MVC.
+      # Erros retornam JSON padronizado com "type", "title", "status", "detail".
+      enabled: true
+
 # --- SERVIDOR ---
 server:
   # Porta onde a API vai rodar. Acesse: http://localhost:8080
   port: 8080
 
-# --- CONFIGURAÇÕES CUSTOMIZADAS DO FITFLOW ---
-# Estas não são do Spring — são propriedades nossas, lidas com @Value ou @ConfigurationProperties
-fitflow:
-  jwt:
-    # Chave secreta usada para assinar e validar os tokens JWT.
-    # ${JWT_SECRET:...} significa: use a variável de ambiente JWT_SECRET se existir,
-    # senão use o valor padrão após os dois pontos (apenas para desenvolvimento local).
-    # Em produção, SEMPRE defina JWT_SECRET como variável de ambiente real.
-    secret: ${JWT_SECRET:fitflow-dev-secret-key-256-bits-change-in-production-00000}
+# --- SPRINGDOC / SWAGGER UI ---
+springdoc:
+  swagger-ui:
+    # URL de acesso à interface: http://localhost:8080/swagger-ui/index.html
+    path: /swagger-ui.html
+    # Mostra os endpoints ordenados por método HTTP
+    operations-sorter: method
+    # Expande as seções de tags automaticamente ao abrir
+    tags-sorter: alpha
+    # Tenta autenticar automaticamente após usar o endpoint /login na UI
+    persist-authorization: true
+  api-docs:
+    # URL do spec gerado: http://localhost:8080/v3/api-docs.yaml
+    path: /v3/api-docs
 
-    # Tempo de expiração do token em milissegundos.
-    # 86400000 ms = 24 horas. Após isso, o usuário precisa fazer login novamente.
-    expiration-ms: 86400000  # 24h
+# --- JWT ---
+# Propriedades lidas com @Value("${jwt.secret}") e @Value("${jwt.expiration}")
+jwt:
+  # Chave secreta usada para assinar e validar os tokens JWT.
+  # ${JWT_SECRET:...} significa: use a variável de ambiente JWT_SECRET se existir,
+  # senão use o valor padrão após os dois pontos (apenas para desenvolvimento local).
+  # PRODUÇÃO: gere com `openssl rand -base64 64` e defina JWT_SECRET como env var.
+  # O valor padrão abaixo é SOMENTE para desenvolvimento — nunca use em produção.
+  secret: ${JWT_SECRET:ZitGbG93LWRldi1qd3Qtc2VjcmV0LWtleS0yMDI0LWRldi1vbmx5}
+
+  # Tempo de expiração do token em milissegundos.
+  # 86400000 ms = 24 horas. Após isso, o usuário precisa fazer login novamente.
+  expiration: 86400000  # 24h
