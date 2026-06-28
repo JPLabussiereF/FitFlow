@@ -138,6 +138,20 @@
         </dependency>
 
         <!-- ═══════════════════════════════════════════════════
+             DOCUMENTAÇÃO
+             springdoc-openapi gera e serve o Swagger UI automaticamente
+             a partir das anotações do código, sem configuração extra.
+             UI: http://localhost:8080/swagger-ui/index.html
+             YAML: http://localhost:8080/v3/api-docs.yaml
+        ═══════════════════════════════════════════════════ -->
+
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+
+        <!-- ═══════════════════════════════════════════════════
              TESTES
              "test" = estas libs só existem durante os testes,
              não entram no jar final da aplicação.
