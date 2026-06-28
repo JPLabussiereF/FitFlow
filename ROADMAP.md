@@ -22,15 +22,15 @@
 - [X] Criar `ROADMAP.md`, `CLAUDE.md` e pipeline CI (`ci.yml`)
 
 ### 1.2 Migrations com Flyway
-- [ ] Criar `V1__create_users_table.sql` — tabela `users`
-- [ ] Criar `V2__create_exercises_table.sql` — tabela `exercises`
-- [ ] Criar `V3__create_workouts_table.sql` — tabelas `workouts` e `workout_exercises`
-- [ ] Criar `V4__create_sessions_tables.sql` — tabelas `workout_sessions` e `session_sets`
-- [ ] Criar `V5__seed_exercises.sql` — popular tabela com exercícios iniciais
-- [ ] Validar que o Flyway roda todas as migrations sem erro ao subir a aplicação
+- [X] Criar `V1__create_users_table.sql` — tabela `users`
+- [X] Criar `V2__create_exercises_table.sql` — tabela `exercises`
+- [X] Criar `V3__create_workouts_tables.sql` — tabelas `workouts` e `workout_exercises`
+- [X] Criar `V4__create_sessions_tables.sql` — tabelas `workout_sessions` e `session_sets`
+- [X] Criar `V5__seed_exercises.sql` — popular tabela com exercícios iniciais
+- [X] Validar que o Flyway roda todas as migrations sem erro ao subir a aplicação
 
 ### 1.3 Autenticação com JWT
-- [ ] Criar entidade `User` com campos: `id`, `name`, `email`, `password`, `createdAt`
+- [ ] Criar entidade `User` com campos: `id`, `name`, `email`, `password`, `createdAt` (`@CreationTimestamp` — imutável), `updatedAt` (`@UpdateTimestamp` — atualizado automaticamente pelo Hibernate)
 - [ ] Criar `UserRepository` (interface JPA)
 - [ ] Criar `UserService` com método `loadUserByUsername` (Spring Security)
 - [ ] Implementar `JwtService`: geração, validação e extração de claims do token
